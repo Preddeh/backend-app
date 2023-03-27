@@ -1,5 +1,7 @@
 version: "3.9"
 
+networks:
+   my_network:
 
 services:
   web:
@@ -9,32 +11,42 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./.htpasswd:/etc/nginx/.htpasswd
-      - /etc/letsencrypt/live/REDACTED/fullchain.pem:/etc/letsencrypt/wildcard/REDACTED/fullchain.pem:ro
-      - /etc/letsencrypt/live/REDACTED/privkey.pem:/etc/letsencrypt/wildcard/REDACTED/privkey.pem:ro
+      - /etc/letsencrypt/live/redacted/fullchain.pem:/etc/letsencrypt/wildcard/redacted/fullchain.pem:ro
+      - /etc/letsencrypt/live/redacted/privkey.pem:/etc/letsencrypt/wildcard/redacted/privkey.pem:ro
     ports:
       - "80:80"
       - "443:443"
+    links: 
+      - frontend
+      - backend
     depends_on:
       - frontend
       - backend
-
+    networks:
+      - my_network
 
   frontend:
     container_name: frontend
-    image: REDACTED:frontend
+    image: registry.gitlab.com/redacted:frontend-dev
     restart: unless-stopped
-
+    networks:
+      - my_network
 
   backend:
     container_name: backend
-    image: REDACTED:backend
+    image: registry.gitlab.com/redacted:backend-dev-test
     restart: unless-stopped
     ports:
       - "81:7000"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6380 
-
+    links:
+      - redis
+    depends_on:
+      - redis
+    networks:
+      - my_network
 
   redis:
     container_name: redis
@@ -46,3 +58,5 @@ services:
       - ./redis.conf:/data/redis/redis.conf
     user: "${UID}:${GID}"
     command: ["redis-server", "/data/redis/redis.conf"]
+    networks:
+      - my_network
