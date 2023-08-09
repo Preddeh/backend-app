@@ -19,7 +19,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        context: ../../../dockerfile  # Path to your Docker build context
+        context: ./dockerfile  # Path to your Docker build context
         dockerfile: Dockerfile  # Path to your Dockerfile
         push: true
         tags: your-docker-image:latest  # Change to your Docker image tag
